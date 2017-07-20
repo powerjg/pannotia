@@ -92,8 +92,8 @@ int main(int argc, char **argv){
     srand(7);
 
     //allocate the csr array
-    csr_array *csr = (csr_array *)malloc(sizeof(csr_array));
-    if(!csr) fprintf(stderr, "malloc failed csr\n");
+    csr_array *csr = (csr_array *)malloc_global(sizeof(csr_array));
+    if(!csr) fprintf(stderr, "malloc_global failed csr\n");
 
     //parse the graph into the csr structure
     if (file_format == 1)
@@ -106,28 +106,36 @@ int main(int argc, char **argv){
     }
 
     //allocate the node value array
-    float *node_value = (float *)malloc(num_nodes * sizeof(float));
-    if(!node_value) fprintf(stderr, "malloc failed node_value\n");
+    float *node_value = (float *)malloc_global(num_nodes * sizeof(float));
+    if(!node_value) fprintf(stderr, "malloc_global failed node_value\n");
+    memset(node_value, 0, num_nodes*sizeof(float));
 
     //allocate the set array
-    int *s_array    = (int *)malloc(num_nodes * sizeof(int));
-    if(!s_array) fprintf(stderr, "malloc failed s_array\n");
+    int *s_array    = (int *)malloc_global(num_nodes * sizeof(int));
+    if(!s_array) fprintf(stderr, "malloc_global failed s_array\n");
+    memset(s_array, 0, num_nodes*sizeof(int));
 
     //randomize the node values
     for(int i = 0; i < num_nodes; i++)
        node_value[i] =  rand()/(float)RAND_MAX;
     
     // c array?
-    int *c_array    = (int *)malloc(num_nodes * sizeof(int));
-    if(!c_array) fprintf(stderr, "malloc failed c_array\n");
+    int *c_array    = (int *)malloc_global(num_nodes * sizeof(int));
+    if(!c_array) fprintf(stderr, "malloc_global failed c_array\n");
+    memset(c_array, 0, num_nodes*sizeof(int));
 
     // c update array?
-    int *cu_array    = (int *)malloc(num_nodes * sizeof(int));
-    if(!cu_array) fprintf(stderr, "malloc failed cu_array\n");
+    int *cu_array    = (int *)malloc_global(num_nodes * sizeof(int));
+    if(!cu_array) fprintf(stderr, "malloc_global failed cu_array\n");
+    memset(cu_array, 0, num_nodes*sizeof(int));
     
     // c update array?
-    float *min_array    = (float *)malloc(num_nodes * sizeof(float));
-    if(!min_array) fprintf(stderr, "malloc failed min_array\n");
+    float *min_array    = (float *)malloc_global(num_nodes * sizeof(float));
+    if(!min_array) fprintf(stderr, "malloc_global failed min_array\n");
+    memset(min_array, 0, num_nodes*sizeof(float));
+    
+    //termination variable
+    int *stop = (int*)malloc_global(sizeof(int));
 
     double time1 = gettime();
 
@@ -136,19 +144,23 @@ int main(int argc, char **argv){
     int global_size = (num_nodes%block_size == 0)? num_nodes: (num_nodes/block_size + 1) * block_size;
     printf("global_size = %d\n", global_size);	
 
-    SNK_INIT_LPARM(lparam, global_size);
+    SNK_INIT_LPARM(lparam, num_nodes);
     lparam->ldims[0] = block_size;
     init(s_array, c_array, cu_array, num_nodes, num_edges, lparam);
+    printf("Past init!\n");
 
-    //termination variable
-    int stop = 1;
-    while(stop){
+    *stop = 1;
+    while(*stop){
         
-        stop = 0;
+        *stop = 0;
         
-        mis1(csr->row_array, csr->col_array, node_value, s_array, c_array, min_array, &stop, num_nodes, num_edges, lparam);
+        mis1(csr->row_array, csr->col_array, node_value, s_array, c_array, min_array, stop, num_nodes, num_edges, lparam);
+        printf("Past mis1\n");
         mis2(csr->row_array, csr->col_array, node_value, s_array, c_array, cu_array, min_array, num_nodes, num_edges, lparam);
+        printf("Past mis2\n");
         mis3(cu_array, c_array, num_nodes, lparam);
+        printf("Past mis3\n");
+        printf("Stop %d\n", *stop);
     }
 
     double time2=gettime();

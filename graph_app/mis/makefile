@@ -67,10 +67,10 @@ $(EXE): mis.cpp parse.o util.o kernel/kernel.h kernel/kernel.o
 	$(CC) $(CC_FLAGS) -o $(EXE) -I$(OPENCL_INC) -L$(OPENCL_LIB) mis.cpp parse.o util.o kernel/kernel.o -L/opt/rocm/lib -lhsa-runtime64
 
 kernel/kernel.o kernel/kernel.h: kernel/kernel.cl
-	${CLOC}/bin/snack.sh -c -amdllvm /opt/rocm/hcc-1.0/compiler -mcpu carrizo -libgcn /opt/rocm/lib kernel/kernel.cl
+	${CLOC}/bin/snack.sh -q -c -amdllvm /opt/rocm/hcc-1.0/compiler -mcpu carrizo -libgcn /opt/rocm/lib kernel/kernel.cl
 
-parse.o:
-	${CC} -c ../../graph_parser/parse.cpp
+parse.o: kernel/kernel.h parse.cpp
+	${CC} -c parse.cpp
 
 util.o:
 	${CC} -c ../../graph_parser/util.cpp

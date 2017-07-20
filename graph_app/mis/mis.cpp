@@ -391,7 +391,7 @@ int main(int argc, char **argv){
     //print out the timing characterisitics
     printf("kernel + memcpy time %f ms\n",  (time2-time1) * 1000);
 
-#if 0 
+#if 1 
     //print the set array
     print_vector(s_array, num_nodes);
 #endif

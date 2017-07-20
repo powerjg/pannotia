@@ -57,14 +57,14 @@
 include ../../common/make.config
 
 CC = g++
-CC_FLAGS = -O3 -Wall
+CC_FLAGS = -O3 -Wall -L../../common -Wl,--unresolved-symbols=ignore-in-shared-libs -L/opt/rocm/lib
 
 EXE = mis
 
 ALL: $(EXE)
 
 $(EXE): mis.cpp parse.o util.o
-	$(CC) $(CC_FLAGS) -o $(EXE) mis.cpp parse.o util.o -lokra_x86_64 -lhsa-runtime64 -lhsa-runtime-ext64 -lelf
+	$(CC) $(CC_FLAGS) -o $(EXE) mis.cpp parse.o util.o -lokra_x86_64 -lhsa-runtime64 
 
 parse.o:
 	${CC} -c ../../graph_parser/parse.cpp
